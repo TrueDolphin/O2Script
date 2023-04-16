@@ -124,6 +124,44 @@ for "_i" from 0 to ((count p3d) - 1) do
 		};
 	}forEach (getSelections _currentObject);
 };
+
+
+if (!_found) then {
+_toFindc = [
+"Component01",
+"Component02",
+"Component03",
+"Component04"
+
+];
+_toReplacec =
+[
+"PB",
+"LB",
+"LE",
+"PE"
+];
+
+
+obj=getActiveObject this;
+obj callRuntime "createcompo";
+{
+	_searchIndex = _toFindc find _x;
+	if(_searchIndex >= 0)then
+	{
+		console<< "index name"<<str(_searchIndex) << str(_x) <<eoln  << eoln;
+		_sel = obj loadSelection _x;
+		obj save _sel as (_toReplacec select _searchIndex);
+		obj deleteSelection _x;
+	};
+}forEach (getSelections obj);
+console<< p3dname <<" --------- Run Again ------" << eoln  << eoln;
+breakTo "CheckAll";
+};
+
+
+
+
 if (_found and !runFromO2) then
 {
 	console<< eoln << p3dname << eoln<<" --------- Memory points found & replaced ------" << eoln  << eoln;
