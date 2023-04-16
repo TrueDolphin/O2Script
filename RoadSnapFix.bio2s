@@ -1,4 +1,5 @@
 //TrueDolphin Edit of Reyhard's rename selections.
+//fixes roads, bridges and rails snapping/magnet ability in terrain builder if unbinned.
 
 #include "std\lodNames.inc"
 #include "std\o2config.inc"
@@ -10,7 +11,11 @@ _toFind = [
 "LB",
 "LE",
 "PB",
-"PE"
+"PE",
+"lb",
+"le",
+"pb",
+"pe"
 ];
 
 scopeName "CheckAll";
@@ -40,7 +45,6 @@ else
 };
 
 _found = false;
-
 _LODs				= getObjects p3d;
 _resolutions		= getResolutions p3d;
 _objects			= getObjects p3d;
@@ -86,7 +90,38 @@ for "_i" from 0 to ((count p3d) - 1) do
 			_currentLOD save _sel as (".sp_asf_b_1_0");
 			_found = true;
 		};
-
+		if (_searchIndex == 4)then //"lb"
+		{
+			console<< "index name"<<str(_searchIndex) << str(_x) <<eoln  << eoln;
+			_sel = _currentLOD loadSelection _x;
+			_currentLOD save _sel as (".sp_asf_a_1_1");
+			_currentLOD save _sel as (".sp_asf_b_0_0");
+			_found = true;
+		};
+		if (_searchIndex == 5)then //"le"
+		{
+			console<< "index name"<<str(_searchIndex) << str(_x) <<eoln  << eoln;
+			_sel = _currentLOD loadSelection _x;
+			_currentLOD save _sel as (".sp_asf_a_0_0");
+			_currentLOD save _sel as (".sp_asf_b_1_1");
+			_found = true;
+		};
+		if (_searchIndex == 6)then //"pb"
+		{
+			console<< "index name"<<str(_searchIndex) << str(_x) <<eoln  << eoln;
+			_sel = _currentLOD loadSelection _x;
+			_currentLOD save _sel as (".sp_asf_a_1_0");
+			_currentLOD save _sel as (".sp_asf_b_0_1");
+			_found = true;
+		};
+		if (_searchIndex == 7)then //"pe"
+		{
+			console<< "index name"<<str(_searchIndex) << str(_x) <<eoln  << eoln;
+			_sel = _currentLOD loadSelection _x;
+			_currentLOD save _sel as (".sp_asf_a_0_1");
+			_currentLOD save _sel as (".sp_asf_b_1_0");
+			_found = true;
+		};
 	}forEach (getSelections _currentObject);
 };
 if (_found and !runFromO2) then
