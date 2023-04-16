@@ -1,4 +1,4 @@
-//TrueDolphin Edit of Reyhard's rename selections.
+//TrueDolphin Edit of Reyhard's rename memory selections.
 //fixes roads, bridges and rails snapping/magnet ability in terrain builder if unbinned.
 
 #include "std\lodNames.inc"
@@ -50,6 +50,8 @@ _resolutions		= getResolutions p3d;
 _objects			= getObjects p3d;
 _memoryPointsList	= [];
 
+
+while {!_found} do {
 for "_i" from 0 to ((count p3d) - 1) do
 {
 	_currentLOD			= _LODs @ _i;
@@ -125,39 +127,40 @@ for "_i" from 0 to ((count p3d) - 1) do
 	}forEach (getSelections _currentObject);
 };
 
+	if (!_found) then {
+	_toFindc = [
+	"Component01",
+	"Component02",
+	"Component03",
+	"Component04"
 
-if (!_found) then {
-_toFindc = [
-"Component01",
-"Component02",
-"Component03",
-"Component04"
-
-];
-_toReplacec =
-[
-"PB",
-"LB",
-"LE",
-"PE"
-];
+	];
+	_toReplacec =
+	[
+	"PB",
+	"LB",
+	"LE",
+	"PE"
+	];
 
 
-obj=getActiveObject this;
-obj callRuntime "createcompo";
-{
-	_searchIndex = _toFindc find _x;
-	if(_searchIndex >= 0)then
+	obj=getActiveObject this;
+	obj callRuntime "createcompo";
 	{
-		console<< "index name"<<str(_searchIndex) << str(_x) <<eoln  << eoln;
-		_sel = obj loadSelection _x;
-		obj save _sel as (_toReplacec select _searchIndex);
-		obj deleteSelection _x;
+		_searchIndex = _toFindc find _x;
+		if(_searchIndex >= 0)then
+		{
+			console<< "index name"<<str(_searchIndex) << str(_x) <<eoln  << eoln;
+			_sel = obj loadSelection _x;
+			obj save _sel as (_toReplacec select _searchIndex);
+			obj deleteSelection _x;
+		};
+	}forEach (getSelections obj);
 	};
-}forEach (getSelections obj);
-console<< p3dname <<" --------- Run Again ------" << eoln  << eoln;
-breakTo "CheckAll";
+
 };
+
+
 
 
 
