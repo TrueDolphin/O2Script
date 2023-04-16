@@ -1,0 +1,48 @@
+/*
+Exports current lod as BITXT file at the same location as the p3d
+*/
+
+#include "std\lodNames.inc"
+console = openStandardIO;
+
+_sourcePath = this @ 0;
+_targetPath = _sourcePath;
+
+_p3d = newLODObject;
+_p3d loadP3D _sourcePath;
+
+_p3dName = nameof _p3d;
+
+_obj = getActiveObject _p3d;
+
+{
+	// delete all proxies
+	if (_x @ [0,6]=="proxy:") then
+	{
+		_sel = _obj loadSelection _x;
+		//deleteSelected _sel;
+	};
+
+	// delete all selections
+	//_obj deleteSelection _x;
+
+} forEach (getSelections _obj);
+
+// save all as selection "filename"
+_sel = newSelection _obj;
+selectAll _sel;
+_obj save _sel as (((splitpath _p3dName) @ 2));
+
+// save as bitxt
+_txtName = ((splitpath _p3dName) @ 0) + ((splitpath _p3dName) @ 1) + ((splitpath _p3dName) @ 2) + ".txt";
+if (_p3d exportBiTXT_Edges _txtName) then
+{
+	console<<"Exported current lod as: "<<eoln<<_txtName<<eoln;
+}
+else
+{
+	console<<"Error exporting "<<_txtName<<eoln;
+};
+
+// revert
+if (true) exitWith {-1};

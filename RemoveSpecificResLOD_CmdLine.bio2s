@@ -1,0 +1,34 @@
+#include "std\lodNames.inc"
+console=openStandardIO;
+
+//example usage
+//O2Script.exe -a O2Scripts\RemoveSpecificResLOD_CmdLine.bio2s p:\test\name.p3d 0
+
+//Library methods
+//==================
+
+// main
+_sourcePath = this @ 0;
+_targetPath = _sourcePath;
+
+_specificLOD = this @ 1;
+
+_p3d = newLODObject;
+_p3d loadP3D _sourcePath;
+
+_LODs = getObjects _p3d;
+_resolutions = getResolutions _p3d;
+
+for "_i" from 0 to ((count _p3d) - 1) do
+{
+	private["_currentLOD","_currentResolution"];
+	_currentLOD = _LODs @ _i;
+	_currentResolution = _resolutions @ _i;
+
+	if (str _currentResolution == _specificLOD) exitWith
+	{
+		_p3d deleteLevel (_currentResolution - 1);
+	};
+};
+
+save (_p3d as _targetPath);

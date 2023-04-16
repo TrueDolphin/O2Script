@@ -1,0 +1,55 @@
+#include "std\lodNames.inc"
+console=openStandardIO;
+
+//example usage
+//O2Script.exe -a O2Scripts\NamedSelectionRename.bio2s p:\test\name.p3d oldSelection newSelection
+
+//Library methods
+//==================
+
+_renameSelection =
+{
+	private ["_currentLOD","_selName","_selNameNew","_sel"];
+	_currentLOD = _this select 0;
+	_selName = _this select 1;
+	_selNameNew = _this select 2;
+
+	if (_currentLOD checkSelectionName _selName) then
+	{
+		if (_currentLOD checkSelectionName _selNameNew) then
+		{
+			//new selection already exists
+			//ToDo: handle that if needed
+		}
+		else
+		{
+			_sel = _currentLOD loadSelection _selName;
+			_currentLOD save _sel as _selNameNew;
+			_currentLOD deleteSelection _selName;
+		};
+	};
+};
+
+// main
+_sourcePath = this @ 0;
+_targetPath = _sourcePath;
+
+_oldSelection = this @ 1;
+_newSelection = this @ 2;
+
+_p3d = newLODObject;
+_p3d loadP3D _sourcePath;
+
+_LODs = getObjects _p3d;
+_resolutions = getResolutions _p3d;
+
+for "_i" from 0 to ((count _p3d) - 1) do
+{
+	private["_currentLOD","_currentResolution"];
+	_currentLOD = _LODs @ _i;
+	_currentResolution = _resolutions @ _i;
+
+	[_currentLOD,_oldSelection,_newSelection] call _renameSelection;
+};
+
+save (_p3d as _targetPath);

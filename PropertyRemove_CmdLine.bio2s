@@ -1,0 +1,38 @@
+#include "std\lodNames.inc"
+console=openStandardIO;
+
+//example usage
+//O2Script.exe -a O2Scripts\PropertyRemove.bio2s p:\test\name.p3d lodnoshadow
+
+//Library methods
+//==================
+
+// main
+_sourcePath = this @ 0;
+_property = this @ 1;
+_targetPath = _sourcePath;
+
+_p3d = newLODObject;
+_p3d loadP3D _sourcePath;
+
+_LODs = getObjects _p3d;
+_resolutions = getResolutions _p3d;
+_objects = getObjects _p3d;
+
+console<<"_sourcePath: "<<_sourcePath<<eoln;
+console<<"_property: "<<_property<<eoln;
+
+for "_i" from 0 to ((count _p3d) - 1) do
+{
+	private["_currentObject"];
+//	_currentLOD = _LODs @ _i;
+//	_currentResolution = _resolutions @ _i;
+	_currentObject = _objects @ _i;
+
+//	if (IS_LOD_RESOLUTION(_currentResolution)) then
+//	{
+		_currentObject setProperty [_property,nil];
+//	};
+};
+
+save (_p3d as _targetPath);

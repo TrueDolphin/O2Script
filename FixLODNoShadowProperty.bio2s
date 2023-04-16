@@ -1,0 +1,24 @@
+#include "std\lodNames.inc"
+console=openStandardIO;
+
+//example usage
+//O2Script.exe -a O2Scripts\FixLODNoShadowProperty.bio2s p:\test\name.p3d
+
+//Library methods
+//==================
+
+### WIP ###
+
+// main
+if (IS_LOD_RESOLUTION(_resol)) then
+{
+	_num = countFaces _currentLOD;
+	if (_num>1000) then
+	{
+		_currentLOD setProperty ["lodnoshadow","1"];
+	};
+};
+if (IS_LOD_SHADOW(_resol)) then
+{
+	_currentLOD setProperty ["lodnoshadow",nil];
+};

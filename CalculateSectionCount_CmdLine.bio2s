@@ -1,0 +1,74 @@
+#include "std\lodNames.inc"
+console=openStandardIO;
+
+//example usage
+//O2Script.exe -a O2Scripts\CalculateSectionCount.bio2s p:\test\name.p3d >> p:\test\SectionCount.txt
+
+//Library methods
+//==================
+
+_sectionIsEqual =
+{
+	private["_s1","_s2"];
+	_s1 = _this @ 0;
+	_s2 = _this @ 1;
+
+	_s1 @ 0 == _s2 @ 0 && _s1 @ 1 == _s2 @ 1 && _s1 @ 2 == _s2 @ 2
+};
+
+_getSection =
+{
+	private["_currentLOD","_faceIndex","_face","_tex","_mat","_flags"];
+	_currentLOD = _this @ 0;
+	_faceIndex = _this @ 1;
+
+	_face = _currentLOD face _faceIndex;
+
+	_tex = getTexture _face;
+	_mat = getMaterial _face;
+	_flags = _face getFaceFlags [0,31];
+
+	[_tex,_mat,_flags]
+};
+
+_countSections =
+{
+	private["_currentLOD","_curSection","_secCount","_s"];
+	_currentLOD = _this;
+
+	_curSection = ["","",-1];//0
+	_secCount = 0;
+	_currentLOD forEachFace [{true},
+	{
+		_s = [_currentLOD,_x] call _getSection;
+		if (!([_curSection,_s] call _sectionIsEqual)) then
+		{
+			_secCount = _secCount + 1;
+			_curSection = _s;
+		}
+	}];
+
+	_secCount
+};
+
+// main
+_sourcePath = this;
+
+_p3d = newLODObject;
+_p3d loadP3D _sourcePath;
+
+_LODs = getObjects _p3d;
+_resolutions = getResolutions _p3d;
+
+_console << "Counting number of sections of '" << _sourcePath << "'" << eoln;
+for "_i" from 0 to ((count _p3d) - 1) do
+{
+	private["_currentLOD","_nSections"];
+	_currentLOD = _LODs @ _i;
+	_nSections = _currentLOD call _countSections;
+
+	_console << "LOD " << ((_resolutions @ _i) call lodNameGetName) << ": " << str _nSections + "(" + (_currentLOD callRuntime "countsections") + ")" +<< eoln;
+};
+/*
+diag_modelSections
+*/
