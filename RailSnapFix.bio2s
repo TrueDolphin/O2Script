@@ -1,5 +1,5 @@
 //TrueDolphin Edit of Reyhard's rename memory selections.
-//fixes roads, bridges and rails snapping/magnet ability in terrain builder if unbinned.
+//fixes standard rails snapping/magnet ability in terrain builder if unbinned.
 
 #include "std\lodNames.inc"
 #include "std\o2config.inc"
