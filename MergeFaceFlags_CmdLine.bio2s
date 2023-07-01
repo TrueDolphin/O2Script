@@ -1,0 +1,43 @@
+#include "std\lodNames.inc"
+console=openStandardIO;
+
+//example usage
+//O2Script.exe -a O2Scripts\MergeFaceFlags_CmdLine.bio2s p:\test\name.p3d
+
+//Library methods
+//==================
+
+// main
+_sourcePath = this @ 0;
+_targetPath = _sourcePath;
+
+_p3d = newLODObject;
+_p3d loadP3D _sourcePath;
+
+_LODs = getObjects _p3d;
+_resolutions = getResolutions _p3d;
+
+_objects = [];
+
+for "_i" from 0 to ((count _resolutions) - 1) do
+{
+	_x = _resolutions @ _i;
+
+	if (IS_LOD_RESOLUTION(_x) || _x == LOD_VIEW_GUNNER || _x == LOD_VIEW_PILOT || _x == LOD_VIEW_CARGO) then
+	{
+		_objects = _objects + [_LODs @ _i];
+	};
+};
+
+for "_i" from 0 to ((count _objects) - 1) do
+{
+	_object = _objects @ _i;
+
+	for "_j" from 0 to (countFaces _object - 1) do
+	{
+		_face = (_object face _j);
+		_val = _face setFaceFlags [[25,31],0];
+	};
+};
+
+save (_p3d as _targetPath);
