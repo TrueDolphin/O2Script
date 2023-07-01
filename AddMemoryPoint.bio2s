@@ -17,35 +17,70 @@ p3d = newLODObject;
 p3d loadP3D _sourcePath;
 
 _changed = false;
-_MemFound = false;
-_LODs			= getObjects p3d;
-_resolutions	= getResolutions p3d;
-_objects		= getObjects p3d;
+_added = false;
 
+_last = 0;
 
-_AddMemPoint={
-	_sel = _currentLOD addPoint [0,0,0];
-	obj=getActiveObject p3d;
-	obj forEachPoint ["true","_sel = newSelection  obj;_sel selectPoint  _x;obj save _sel as ('Origin') "];
-	_changed = true;
+_AddMemPoint=
+{
+	_LODs			= getObjects p3d;
+	_resolutions	= getResolutions p3d;
+	_objects		= getObjects p3d;
+	for "_i" from 0 to ((count p3d) - 1) do
+		{
+			_currentLOD			= _LODs @ _i;
+			_currentResolution	= _resolutions @ _i;
+			_currentObject		= _objects @ _i;
+
+			if(LOD_MEMORY == _currentResolution)then
+			{
+				_changed = true;
+				_x = _currentLOD addPoint [0,0,0];
+				_sel = newSelection _currentObject;
+				_sel selectPoint _x;
+				_currentObject save _sel as ('Origin');
+			};
+			_last = _currentResolution;
+		};
 };
 
-for "_i" from 0 to ((count p3d) - 1) do
+_CleanMemPoint=
 	{
-		_currentLOD			= _LODs @ _i;
-		_currentResolution	= _resolutions @ _i;
-		_currentObject		= _objects @ _i;
-
-		if(LOD_MEMORY == _currentResolution)then
+	_LODs			= getObjects p3d;
+	_resolutions	= getResolutions p3d;
+	_objects		= getObjects p3d;
+	for "_i" from 0 to ((count p3d) - 1) do
 		{
-			_MemFound = true;
-			[_currentLOD] call _AddMemPoint;
+			_currentLOD			= _LODs @ _i;
+			_currentResolution	= _resolutions @ _i;
+			_currentObject		= _objects @ _i;
+
+			if(LOD_MEMORY == _currentResolution)then
+			{
+				{
+					_selection = _currentLOD loadSelection _x;
+					deleteSelected _selection;
+				} forEach (getSelections _currentLOD);
+			};
 		};
 	};
 
-if (!_MemFound) then {
-	console<<"error, memory lod not found"<<eoln<<eoln;
-}
+call _AddMemPoint;
+	if (!_changed) then
+	{
+		if (!_added) then
+		{	
+			_added = true;
+			_obj2=addLevel p3d;
+			p3d setResolution CALCSPECLOD(1);
+			_obj=p3d getObject (p3d findLevelSpecial _last);
+			_obj2:=_obj;
+			save p3d;
+			p3d loadP3D _sourcePath;
+			call _CleanMemPoint;
+			call _AddMemPoint;
+		};
+	};	
 
 if (_changed) then
 	{
