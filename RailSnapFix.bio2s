@@ -1,0 +1,153 @@
+//TrueDolphin Edit of Reyhard's rename memory selections.
+//fixes standard rails snapping/magnet ability in terrain builder if unbinned.
+
+#include "std\lodNames.inc"
+#include "std\o2config.inc"
+#include "std\paramFile.inc"
+#include "CheckMat.inc.bio2s"
+#include "std\flags.inc"
+
+_toFind = ["LB", "LE", "PB", "PE", "lb", "le", "pb", "pe"];
+
+scopeName "CheckAll";
+
+console = openStandardIO;
+
+if (typename this == "STRING") then {
+  p3d = newLODObject;
+  p3dname = this;
+  if (! (p3d loadP3d this)) then {
+    console << "Unable to open:" + this << eoln;
+    BreakTo "CheckAll";
+  };
+  runFromO2 = false;
+  texpath = ((splitPath p3dname)@0);
+  console << "------------" << eoln;
+  console << "Checking file: " + p3dname << eoln;
+}
+else {
+  p3dname = nameof this;
+  p3dname = splitPath p3dname;
+  p3dname = p3dname@2 + p3dname@3;
+  runFromO2 = true;
+  p3d = this;
+  texpath = o2GetConfig IDS_CFGPATHFORTEX;
+  console << "--------- Checking " << p3dname << " ------" << eoln;
+
+};
+
+_found = false;
+_LODs = getObjects p3d;
+_resolutions = getResolutions p3d;
+_objects = getObjects p3d;
+_memoryPointsList = [];
+
+while { ! _found
+}
+do {
+  for "_i"
+  from 0 to((count p3d) - 1) do {
+    _currentLOD = _LODs@_i;
+    _currentResolution = _resolutions@_i;
+    _currentObject = _objects@_i;
+
+    {
+      _searchIndex = _toFind find _x;
+      if (_searchIndex == 0) then //"LB"
+      {
+        console << "index name" + str(_searchIndex) + str(_x) << eoln;
+        _sel = _currentLOD loadSelection _x;
+        _currentLOD save _sel as(".sp_asf_a_1_1");
+        _currentLOD save _sel as(".sp_asf_b_0_0");
+        _found = true;
+      };
+      if (_searchIndex == 1) then //"LE"
+      {
+        console << "index name" + str(_searchIndex) + str(_x) << eoln;
+        _sel = _currentLOD loadSelection _x;
+        _currentLOD save _sel as(".sp_asf_a_0_0");
+        _currentLOD save _sel as(".sp_asf_b_1_1");
+        _found = true;
+      };
+      if (_searchIndex == 2) then //"PB"
+      {
+        console << "index name" + str(_searchIndex) + str(_x) << eoln;
+        _sel = _currentLOD loadSelection _x;
+        _currentLOD save _sel as(".sp_asf_a_1_0");
+        _currentLOD save _sel as(".sp_asf_b_0_1");
+        _found = true;
+      };
+      if (_searchIndex == 3) then //"PE"
+      {
+        console << "index name" + str(_searchIndex) + str(_x) << eoln;
+        _sel = _currentLOD loadSelection _x;
+        _currentLOD save _sel as(".sp_asf_a_0_1");
+        _currentLOD save _sel as(".sp_asf_b_1_0");
+        _found = true;
+      };
+      if (_searchIndex == 4) then //"lb"
+      {
+        console << "index name" + str(_searchIndex) + str(_x) << eoln;
+        _sel = _currentLOD loadSelection _x;
+        _currentLOD save _sel as(".sp_asf_a_1_1");
+        _currentLOD save _sel as(".sp_asf_b_0_0");
+        _found = true;
+      };
+      if (_searchIndex == 5) then //"le"
+      {
+        console << "index name" + str(_searchIndex) + str(_x) << eoln;
+        _sel = _currentLOD loadSelection _x;
+        _currentLOD save _sel as(".sp_asf_a_0_0");
+        _currentLOD save _sel as(".sp_asf_b_1_1");
+        _found = true;
+      };
+      if (_searchIndex == 6) then //"pb"
+      {
+        console << "index name" + str(_searchIndex) + str(_x) << eoln;
+        _sel = _currentLOD loadSelection _x;
+        _currentLOD save _sel as(".sp_asf_a_1_0");
+        _currentLOD save _sel as(".sp_asf_b_0_1");
+        _found = true;
+      };
+      if (_searchIndex == 7) then //"pe"
+      {
+        console << "index name" + str(_searchIndex) + str(_x) << eoln;
+        _sel = _currentLOD loadSelection _x;
+        _currentLOD save _sel as(".sp_asf_a_0_1");
+        _currentLOD save _sel as(".sp_asf_b_1_0");
+        _found = true;
+      };
+    }
+    forEach(getSelections _currentObject);
+  };
+
+  if (! _found ) then {
+    _toFindc = ["Component01", "Component02", "Component03", "Component04"
+
+    ];
+    _toReplacec = ["LB", "LE", "PB", "PE"];
+
+    obj = getActiveObject this;
+    obj callRuntime "createcompo"; {
+      _searchIndex = _toFindc find _x;
+      if (_searchIndex >= 0) then {
+        console << "index name" + str(_searchIndex) + str(_x) << eoln;
+        _sel = obj loadSelection _x;
+        obj save _sel as(_toReplacec select _searchIndex);
+        obj deleteSelection _x;
+      };
+    }
+    forEach(getSelections obj);
+  };
+
+};
+
+if ( _found and ! runFromO2 ) then {
+  console << eoln << p3dname << eoln << " --------- Memory points found & replaced ------" << eoln << eoln;
+  if (!save p3d) then {
+    console << "unable to SAVE " << p3dname << eoln;
+  };
+} else {
+
+  console << p3dname << " --------- No memory points found ------" << eoln << eoln;
+};
