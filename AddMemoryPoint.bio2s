@@ -4,7 +4,15 @@
 #include "CheckMat.inc.bio2s"
 #include "std\flags.inc"
 
+//written to add an "Origin" memory point to models for surface height checks when autocenter 0 isn't set in geometry for various reasons.
 
+/* powershell example
+$files = Get-ChildItem -Recurse -include *.p3d
+foreach ($file in $files){
+write-host $file
+& "D:\SteamLibrary\steamapps\common\DayZ Tools\Bin\ObjectBuilder\O2Script.exe" -a "D:\SteamLibrary\steamapps\common\DayZ Tools\Bin\ObjectBuilder\O2Scripts\AddMemoryPoint.bio2s" $file
+}
+*/
 
 scopeName "CheckAll";
 
