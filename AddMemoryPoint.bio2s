@@ -18,11 +18,29 @@ scopeName "CheckAll";
 
 console=openStandardIO;
 
-_sourcePath = this @ 0;
-_targetPath = _sourcePath;
+if (typename this=="STRING") then
+{
+	p3d=newLODObject;
+	p3dname=this;
+	if (!(p3d loadP3d this)) then {	console<<"Unable to open:"<<this<<eoln;BreakTo "CheckAll";};
+	runFromO2=false;
+	texpath=((splitPath p3dname) @ 0);
+	console<<"----------------------------------------------------------------------"<<eoln;
+	console<<"Checking file: "<<p3dname<<eoln;
+}
+else
+{
+	p3dname=nameof this;
+	p3dname=splitPath p3dname;
+	p3dname=p3dname @ 2 + p3dname @ 3;
+	runFromO2=true;
+	p3d=this;
+	texpath=o2GetConfig IDS_CFGPATHFORTEX;
+	console<<"--------- Checking "<<p3dname<<" ------"<<eoln;
+};
 
-p3d = newLODObject;
-p3d loadP3D _sourcePath;
+_sourcePath = texpath;
+_targetPath = _sourcePath;
 
 _changed = false;
 _added = false;
