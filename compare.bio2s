@@ -1,0 +1,115 @@
+#include "std\lodNames.inc"
+#include "std\o2config.inc"
+#include "std\paramFile.inc"
+#include "CheckMat.inc.bio2s"
+#include "std\flags.inc"
+
+//example: O2Script.exe -a O2Scripts\compare.bio2s p:\test1.p3d p:\test2.p3d
+
+scopeName "CheckAll";
+
+console=openStandardIO;
+
+["_model1", "_model2", "_points1", "_points2", "_totalDistance"];
+
+
+_sourcePath1 = this @ 0;
+_sourcePath2 = this @ 1;
+_model1 = newLODObject;
+_model2 = newLODObject;
+_result1 = _model1 loadP3D _sourcePath1;
+_result2 = _model2 loadP3D _sourcePath2;
+
+
+
+_AddPoints1=
+{
+	_LODs			= getObjects _model1;
+	_resolutions	= getResolutions _model1;
+	_objects		= getObjects _model1;
+	for "_i" from 0 to ((count _model1) - 1) do
+		{
+			_currentLOD			= _LODs @ _i;
+			_currentResolution	= _resolutions @ _i;
+			_currentObject		= _objects @ _i;
+            _currentObject forEachPoint [
+            "((_this getPoint _x) @ 1 ) > 0",
+            "_point= _this getpoint _x;_this setPoint [_x,[_point @ 0, _point @ 1,_point @ 2]];_points1 = _points1 + _point;"
+            ];
+		};
+};
+
+_AddPoints2=
+{
+	_LODs			= getObjects _model2;
+	_resolutions	= getResolutions _model2;
+	_objects		= getObjects _model2;
+	for "_i" from 0 to ((count _model2) - 1) do
+		{
+			_currentLOD			= _LODs @ _i;
+			_currentResolution	= _resolutions @ _i;
+			_currentObject		= _objects @ _i;
+            _currentObject forEachPoint [
+            "((_this getPoint _x) @ 1 ) > 0",
+            "_point= _this getpoint _x;_this setPoint [_x,[_point @ 0 , _point @ 1 ,_point @ 2 ]];_points2 = _points2 + _point;"
+            ];
+		};
+};
+
+if (_result1 && _result2) then {
+    _points1 = [];
+    _points2 = [];
+    call _AddPoints1;
+    call _AddPoints2;
+
+    _totalDistance = 0;
+    _minCount = 0;
+    _index = 0;
+    // Find the minimum count between _points1 and _points2
+    _count1 = count _points1;
+    _count2 = count _points2;
+        console << str _count1 << eoln;
+        console << str _count2 << eoln;
+    if (_count2 < _count1) then {
+        _minCount = _count2 - 1;
+    } else {
+        _minCount = _count1 - 1;
+    };
+
+    if (_count1 > _count2) then {
+        console << "pbo 1 has a greater count." << eoln;
+    };
+    
+    if (_count2 > _count1) then {
+        console << "pbo 2 has a greater count." << eoln;
+    };
+    
+    if (_count2 == _count1) then {
+        console << "Both pbos have the same count." << eoln;
+    };
+
+    // Iterate over the minimum count
+    for "_i" from 0 to _minCount step 3 do {
+        _index = _i + 2;
+        if (_index >= _minCount) then { exitFor; };
+
+        if (_index < _minCount) then {
+            _point1 = [_points1 select _i, _points1 select (_i + 1), _points1 select (_i + 2)];
+            _point2 = [_points2 select _i, _points2 select (_i + 1), _points2 select (_i + 2)];
+
+            if ((_point1 distanceFrom _point2) > 0) then {
+                _distance = _point1 distanceFrom _point2;
+                _totalDistance = _totalDistance + _distance;
+            };
+        } else {
+            exitFor;
+        };
+    };
+
+
+    // Output or use the total distance as needed
+    console << "Total Disparity Between Points:" << eoln;
+    console << str _totalDistance << eoln;
+} else {
+    console << "Error loading a model" << eoln;
+}
