@@ -1,0 +1,113 @@
+#include "std\lodNames.inc"
+console=openStandardIO;
+
+//example usage: - run as admin if issues with saving.
+//O2Script.exe -a SetGeometryMass.bio2s p:\test\model.p3d 150
+
+_setTotalMassForGeometryLOD =
+{
+	private["_currentLOD","_targetMass","_currentMass","_pointCount","_massPerPoint"];
+	_currentLOD = _this select 0;
+	_targetMass = _this select 1;
+	
+	// First, calculate current total mass
+	_currentMass = 0;
+	_pointCount = countPoints _currentLOD;
+	
+	console<<"Geometry LOD has "<<str _pointCount<<" points"<<eoln;
+	
+	// Calculate current mass
+	for "_i" from 0 to (_pointCount - 1) do
+	{
+		_currentMass = _currentMass + (_currentLOD getPointMass _i);
+	};
+	
+	console<<"Current total mass: "<<str _currentMass<<" kg"<<eoln;
+	console<<"Target total mass: "<<str _targetMass<<" kg"<<eoln;
+	
+	// Distribute mass evenly across all points
+	if (_pointCount > 0) then
+	{
+		_massPerPoint = _targetMass / _pointCount;
+		
+		console<<"Setting mass per point: "<<str _massPerPoint<<" kg"<<eoln;
+		
+		for "_i" from 0 to (_pointCount - 1) do
+		{
+			_currentLOD setPointMass [_i, _massPerPoint];
+		};
+		
+		console<<"Mass distribution complete!"<<eoln;
+	}
+	else
+	{
+		console<<"ERROR: No points found in geometry LOD!"<<eoln;
+	};
+};
+
+_sourcePath = this@0;
+_targetMass = this@1;
+
+if (isnil "_sourcePath") then
+{
+	console<<"ERROR: No source path provided!"<<eoln;
+	console<<"Usage: O2Script.exe -a SetGeometryMass.bio2s <path_to_p3d> <total_mass>"<<eoln;
+	halt;
+};
+
+if (isnil "_targetMass") then
+{
+	console<<"ERROR: No target mass provided!"<<eoln;
+	console<<"Usage: O2Script.exe -a SetGeometryMass.bio2s <path_to_p3d> <total_mass>"<<eoln;
+	halt;
+};
+
+_targetMass = parseNumber _targetMass;
+
+console<<"Source file: "<<_sourcePath<<eoln;
+console<<"Target mass: "<<str _targetMass<<" kg"<<eoln;
+console<<"================================"<<eoln;
+
+_p3d = newLODObject;
+if (!(_p3d loadP3D _sourcePath)) then
+{
+	console<<"ERROR: Failed to load P3D file: "<<_sourcePath<<eoln;
+	halt;
+};
+
+_LODs = getObjects _p3d;
+_resolutions = getResolutions _p3d;
+_geometryFound = false;
+
+for "_i" from 0 to ((count _p3d) - 1) do
+{
+	private["_currentLOD","_currentResolution"];
+	_currentLOD = _LODs @ _i;
+	_currentResolution = _resolutions @ _i;
+	
+	if (_currentResolution == LOD_GEOMETRY) then
+	{
+		_geometryFound = true;
+		console<<"Processing Geometry LOD..."<<eoln;
+		
+		[_currentLOD, _targetMass] call _setTotalMassForGeometryLOD;
+	};
+};
+
+if (!_geometryFound) then
+{
+	console<<"WARNING: No Geometry LOD found in model!"<<eoln;
+};
+
+console<<"================================"<<eoln;
+console<<"Saving modified P3D..."<<eoln;
+
+if (save _p3d) then
+{
+	console<<"SUCCESS: File saved successfully!"<<eoln;
+}
+else
+{
+	console<<"ERROR: Failed to save file!"<<eoln;
+};
+
