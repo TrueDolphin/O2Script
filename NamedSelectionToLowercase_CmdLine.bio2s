@@ -1,0 +1,74 @@
+#include "std\lodNames.inc"
+console=openStandardIO;
+
+// example usage
+// O2Script.exe -a O2Scripts\NamedSelectionToLowercase_CmdLine.bio2s p:\test\name.p3d
+
+// Library methods
+// ==================
+
+_renameSelection =
+{
+    private ["_currentLOD","_selName","_selNameNew","_sel"];
+    _currentLOD = _this select 0;
+    _selName = _this select 1;
+    _selNameNew = _this select 2;
+
+    // Only proceed if the selection actually exists
+    if (_currentLOD checkSelectionName _selName) then
+    {
+        // Renaming strategy: 
+        // 1. Load original selection
+        // 2. Save as TEMP to avoid case-insensitivity conflicts (e.g. "Head" vs "head")
+        // 3. Delete original
+        // 4. Save TEMP as new target name
+        _sel = _currentLOD loadSelection _selName;
+        _currentLOD save _sel as "TEMP_XXX";
+        _currentLOD deleteSelection _selName;
+
+        _sel = _currentLOD loadSelection "TEMP_XXX";
+        _currentLOD save _sel as _selNameNew;
+        _currentLOD deleteSelection "TEMP_XXX";
+    };
+};
+
+// Main
+// ==================
+_sourcePath = this @ 0;
+_targetPath = _sourcePath;
+
+_p3d = newLODObject;
+_p3d loadP3D _sourcePath;
+
+_LODs = getObjects _p3d;
+_resolutions = getResolutions _p3d;
+
+console << "_sourcePath: " << _sourcePath << eoln;
+
+// Loop through all LODs
+for "_i" from 0 to ((count _p3d) - 1) do
+{
+    private["_currentLOD","_currentResolution"];
+    _currentLOD = _LODs @ _i;
+    
+    // Iterate through ALL named selections in the current LOD
+    {
+        private ["_selection","_newSelectionName"];
+        _selection = _x;
+
+        // Convert the existing name strictly to lowercase
+        // This function naturally preserves underscores (e.g., "Left_Arm" -> "left_arm")
+        _newSelectionName = toLower _selection;
+
+        // Check if the name actually needs changing. 
+        if (!(_selection in [_newSelectionName])) then
+        {
+            console << "Renaming: " + _selection + " to " + _newSelectionName << eoln;
+            
+            [_currentLOD, _selection, _newSelectionName] call _renameSelection;
+        };
+
+    } forEach ((getSelections _currentLOD));
+};
+
+save (_p3d as _targetPath);
