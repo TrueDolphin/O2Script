@@ -1,24 +1,90 @@
-#include "std\lodNames.inc"
 console=openStandardIO;
 
-//example usage
-//O2Script.exe -a O2Scripts\FixLODNoShadowProperty.bio2s p:\test\name.p3d
+// Usage:
+// O2Script.exe -a FixLODNoShadowProperty.bio2s <path_to_p3d> [face_threshold]
+//
+// For each RES LOD with more than [face_threshold] faces (default 1000),
+// sets the "lodnoshadow" property to "1".
+// For each Shadow LOD, removes the "lodnoshadow" property if present.
 
-//Library methods
-//==================
+_sourcePath = this@0;
+_thresholdStr = this@1;
 
-### WIP ###
-
-// main
-if (IS_LOD_RESOLUTION(_resol)) then
+if (isnil("_sourcePath")) then
 {
-	_num = countFaces _currentLOD;
-	if (_num>1000) then
+	console<<"ERROR: No source path provided!"<<eoln;
+	console<<"Usage: O2Script.exe -a FixLODNoShadowProperty.bio2s <path_to_p3d> [face_threshold]"<<eoln;
+	halt;
+};
+
+private["_threshold"];
+_threshold = 1000;
+if (!(isnil("_thresholdStr"))) then
+{
+	_threshold = val _thresholdStr;
+};
+
+console<<"Source file: "<<_sourcePath<<eoln;
+console<<"Face threshold: "<<str _threshold<<eoln;
+console<<"================================"<<eoln;
+
+_p3d = newLODObject;
+if (!(_p3d loadP3D _sourcePath)) then
+{
+	console<<"ERROR: Failed to load P3D file: "<<_sourcePath<<eoln;
+	halt;
+};
+
+_LODs = getObjects _p3d;
+_resolutions = getResolutions _p3d;
+_modified = 0;
+
+for "_i" from 0 to ((count _p3d) - 1) do
+{
+	private["_lod","_res","_nFaces"];
+	_lod = _LODs @ _i;
+	_res = _resolutions @ _i;
+
+	// RES LODs: resolution < 1000
+	if (_res < 1000) then
 	{
-		_currentLOD setProperty ["lodnoshadow","1"];
+		_nFaces = countFaces _lod;
+		if (_nFaces > _threshold) then
+		{
+			_lod setProperty ["lodnoshadow","1"];
+			console<<"LOD "<<str _i<<" (res "<<str _res<<", "<<str _nFaces<<" faces): set lodnoshadow=1"<<eoln;
+			_modified = _modified + 1;
+		}
+		else
+		{
+			console<<"LOD "<<str _i<<" (res "<<str _res<<", "<<str _nFaces<<" faces): below threshold, skipped."<<eoln;
+		};
+	};
+
+	// Shadow LODs: resolution 10000-11000
+	if ((_res >= 10000) && (_res < 11000)) then
+	{
+		_lod setProperty ["lodnoshadow",nil];
+		console<<"LOD "<<str _i<<" (shadow, res "<<str _res<<"): removed lodnoshadow"<<eoln;
+		_modified = _modified + 1;
 	};
 };
-if (IS_LOD_SHADOW(_resol)) then
+
+console<<"================================"<<eoln;
+
+if (_modified > 0) then
 {
-	_currentLOD setProperty ["lodnoshadow",nil];
+	console<<"Modified "<<str _modified<<" LOD(s). Saving..."<<eoln;
+	if (save _p3d) then
+	{
+		console<<"SUCCESS: Saved!"<<eoln;
+	}
+	else
+	{
+		console<<"ERROR: Failed to save!"<<eoln;
+	};
+}
+else
+{
+	console<<"No LODs needed modification."<<eoln;
 };
